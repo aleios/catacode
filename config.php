@@ -6,7 +6,7 @@ return (object) array(
 	'sqlUser' => 'root',
 	'sqlPass' => '',
 	'sqlDatabase' => 'catadb',
-	'dryRun', false
+	'dryRun' => FALSE
 );
 
 ?>

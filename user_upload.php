@@ -65,7 +65,7 @@ function sanitizeAndVerifyEmail($email)
  *
  * @return array 
  */
-function parseComandLineOptions()
+function parseCommandLineOptions()
 {
 	// Define single hypenated options
 	$shortoptions = "u:";
@@ -97,13 +97,75 @@ function showHelpInformation()
 
 /**
  * 
+ * 
+ * @param string &$row Reference to array row.
+ * @param string $key Array key
+ * @param string $header Header value.
+ * @return void
+ */
+function attachHeaderCallback(&$row, $key, $header) 
+{
+	$row = array_combine($header, $row);
+}
+
+/**
+ *
+ *
+ * @param string $filename 
+ * @return void
+ */
+function parseCsv($filename)
+{
+	global $config;
+	
+	// Check if file exists
+	if(!is_readable($filename))
+	{
+		echo "Error: File doesn't exist or is not readable.\n";
+		return;
+	}
+	
+	// Try to open the file.
+	$csvfile = file($filename);
+	if($csvfile === FALSE)
+	{
+		echo "Error: Failed to open file.\n";
+		return;
+	}
+	
+	// Parse CSV to array.
+	$csvarr = array_map('str_getcsv', $csvfile);
+
+	
+	// Pop the header row of the csv off the top of the array.
+	$header = array_shift($csvarr);
+	
+	// Sanitize header.
+	$headercount = count($header);
+	for($i = 0; $i < $headercount; $i++)
+	{
+		$tmp = $header[$i];
+		$tmp = trim($tmp);
+		$tmp = strtolower($tmp);
+		$header[$i] = $tmp;
+	}
+	
+	// Go through each row in the array and attach header as key to values.
+	array_walk($csvarr, 'attachHeaderCallback', $header);
+	
+}
+
+/**
+ * 
  *
  * @return void
  */
 function userUploadEntryPoint()
 {
+	global $config;
+	
 	// Parse command line arguments.
-	$options = parseComandLineOptions();
+	$options = parseCommandLineOptions();
 	
 	// Check if we are to display help information.
 	if(array_key_exists('help', $options))
@@ -134,6 +196,7 @@ function userUploadEntryPoint()
 	}
 	
 	// Parse the csv file.
+	parseCsv($options['file']);
 	
 }
 
