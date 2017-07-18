@@ -10,9 +10,32 @@ $config = include('config.php');
  */
 function createSqlTable()
 {
-
+	global $config;
+	$inst = new mysqli($config->sqlHost, $config->sqlUser, $config->sqlPass, $config->sqlDatabase);
+	
+	if($inst->connect_error)
+	{
+		echo "Error: Could not connect to database: $config->sqlHost.";
+		return;
+	}
+	
+	$query = "CREATE TABLE `users` (
+	name VARCHAR(50) NOT NULL,
+	surname VARCHAR(50) NOT NULL,
+	email VARCHAR(320) NOT NULL,
+	UNIQUE (email)
+	)";
+	
+	// Execute the query and exit on any errors.
+	if($inst->query($query) === FALSE)
+	{
+		echo "Error: Could not execute query.\nReason: " . $inst->error . "\n";
+		return;
+	}
+	
+	// Close the database connection.
+	$inst->close();
 }
-
 
 /**
  * This function takes a name and surname fields and trims any leading/trailing whitespace, removes captilization, capatilizes the first character of the name.
@@ -61,13 +84,22 @@ function parseComandLineOptions()
 	return getopt($shortoptions, $longoptions);
 }
 
+/**
+ *
+ *
+ *
+ * @return void
+ */
 function showHelpInformation()
 {
 	echo "USAGE: user_upload --file users.csv\n";
-	echo "";
 }
 
-// Script Entry point
+/**
+ * 
+ *
+ * @return void
+ */
 function userUploadEntryPoint()
 {
 	// Parse command line arguments.
@@ -80,6 +112,29 @@ function userUploadEntryPoint()
 		showHelpInformation();
 		return;
 	}
+	
+	// 
+	if(array_key_exists('create_table', $options))
+	{
+		createSqlTable();
+		return;
+	}
+	
+	// 
+	if(!array_key_exists('file', $options))
+	{
+		// Display missing --file error and show help information.
+		showHelpInformation();
+		return;
+	}
+	
+	if(array_key_exists('dry_run', $options))
+	{
+		$config->dryRun = true;
+	}
+	
+	// Parse the csv file.
+	
 }
 
 userUploadEntryPoint();

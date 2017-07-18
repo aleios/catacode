@@ -5,7 +5,8 @@ return (object) array(
 	'sqlHost' => 'localhost',
 	'sqlUser' => 'root',
 	'sqlPass' => '',
-	'sqlDatabase' => 'db'
+	'sqlDatabase' => 'catadb',
+	'dryRun', false
 );
 
 ?>
