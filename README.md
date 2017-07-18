@@ -1,8 +1,8 @@
 # IT tests collection
 
-## CSV Processor
+## User Upload
 
-Requires a Mysql/MariaDB database to be available with a table `users` containing the following columns:
+Requires a Mysql/MariaDB database to be available. Using `--create_table` will generate a table with fields:
 - email
 - name
 - surname
@@ -15,6 +15,14 @@ The following commands are available:
 - -p [MySQL password]
 - -h [MySQL host]
 - --help - Shows the application help text.
+
+### Deliverable Assumptions
+
+- It has been assumed that with a lack of a --file parameter that the application will terminate after displaying the help text.
+- With the lack of any of the MySQL parameters it will be assumed that the following defaults will be used per missing parameter:
+  - Username: 
+  - Password:
+  - Host:
 
 ## Foobar Test
 
