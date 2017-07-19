@@ -26,6 +26,8 @@ The following commands are available:
   - Host: localhost
   - Database: catadb
 - To accompany the default database a -d option has been included to select the database from the command line.
+- It is assumed that a malformed file will exit with error.
+- Upon lack of data in a field the application will skip the invalid. Eg. blank email field.
 
 ## Foobar Test
 
