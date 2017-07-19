@@ -85,12 +85,14 @@ function sanitizeAndVerifyEmail(&$email)
 function parseCommandLineOptions()
 {
 	// Define single hypenated options
+	// eg. -u
 	$shortoptions = "u:";
 	$shortoptions .= "p:";
 	$shortoptions .= "h:";
 	$shortoptions .= "d:";
 
 	// Define double hypenated options
+	// eg. --file
 	$longoptions = array(
 		"file:",
 		"create_table",
@@ -103,8 +105,7 @@ function parseCommandLineOptions()
 }
 
 /**
- *
- *
+ * Shows the help information for the user upon request or switch error.
  *
  * @return void
  */
@@ -122,7 +123,7 @@ function showHelpInformation()
 }
 
 /**
- * 
+ * Takes each row within the specifed array and sets the key to the respective header column.
  * 
  * @param string &$row Reference to array row.
  * @param string $key Array key
@@ -135,7 +136,7 @@ function attachHeaderCallback(&$row, $key, $header)
 }
 
 /**
- * 
+ * Parses the given csv file and inserts the data into the database.
  *
  * @param string $filename 
  * @return void
@@ -206,6 +207,13 @@ function parseCsv($filename)
 		$surname = sanitizeNameField($user['surname']);
 		$email = $user['email'];
 		
+		// Test if fields are empty.
+		if(empty($name) || empty($surname) || empty($email))
+		{
+			echo "Error: Missing fields for entry. Skipping.\nName: $name\nSurname: $surname\nEmail: $email\n";
+			continue;
+		}
+		
 		// Check if email is valid. If not valid then skip and report error.
 		if(!sanitizeAndVerifyEmail($email))
 		{
@@ -238,6 +246,7 @@ function parseCsv($filename)
 			}
 		}
 		
+		// Test for a successful database insertion. On --dry_run test always succeeds.
 		if(!$success)
 		{
 			echo "Error: Failed to insert $email into the database.\nReason: " . $stmterror . "\n";
@@ -249,11 +258,12 @@ function parseCsv($filename)
 		}
 	}
 	
+	// Display the total succeeded versus the total amount of insertable rows.
 	echo "Total: $totalsuccess / " . count($csvarr) . " successful.\n";
 }
 
 /**
- * 
+ * Entry point for the script.
  *
  * @return void
  */
@@ -320,6 +330,7 @@ function userUploadEntryPoint()
 	
 }
 
+// Call the entry point to the script functions.
 userUploadEntryPoint();
 
 ?>
