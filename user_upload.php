@@ -88,6 +88,7 @@ function parseCommandLineOptions()
 	$shortoptions = "u:";
 	$shortoptions .= "p:";
 	$shortoptions .= "h:";
+	$shortoptions .= "d:";
 
 	// Define double hypenated options
 	$longoptions = array(
@@ -170,8 +171,67 @@ function parseCsv($filename)
 	// Go through each row in the array and attach header as key to values.
 	array_walk($csvarr, 'attachHeaderCallback', $header);
 	
-	// Update the database with the data from the csv (unless dry run).
+	// Try connect to the database when not a dry run.
+	$inst = null;
+	if(!$config->dryRun)
+	{
+		$inst = new mysqli($config->sqlHost, $config->sqlUser, $config->sqlPass, $config->sqlDatabase);
+		
+		if($inst->connect_error)
+		{
+			echo "Error: Could not connect to database: $config->sqlHost.";
+			return;
+		}
+	}
 	
+	// Update the database with the data from the csv (unless dry run).
+	foreach($csvarr as $user)
+	{
+		$name = sanitizeNameField($user['name']);
+		$surname = sanitizeNameField($user['surname']);
+		$email = $user['email'];
+		
+		// Check if email is valid. If not valid then skip and report error.
+		if(!sanitizeAndVerifyEmail($email))
+		{
+			echo "Error: Invalid email for '$email'. Skipping...\n";
+			continue;
+		}
+		
+		// Insert to database.
+		$success = true;
+		$stmterror = "";
+		if(!$config->dryRun)
+		{
+			$query = "INSERT INTO `users` (name, surname, email) VALUES (?, ?, ?)";
+			
+			$stmt = $inst->prepare($query);
+			
+			if(!$stmt)
+			{
+				$success = false;
+				$stmterror = $inst->error;
+			}
+			else
+			{
+				$stmt->bind_param('sss', $name, $surname, $email);
+				
+				$success = $stmt->execute();
+				$stmterror = $stmt->error;
+				
+				$stmt->close();
+			}
+		}
+		
+		if(!$success)
+		{
+			echo "Error: Failed to insert $email into the database.\nReason: " . $stmterror . "\n";
+		}
+		else
+		{	
+			echo "Inserted $name $surname | $email into database.\n";
+		}
+	}
 }
 
 /**
@@ -214,7 +274,6 @@ function userUploadEntryPoint()
 	{
 		$config->sqlDatabase = $options['d'];
 	}
-	
 	
 	// 
 	if(array_key_exists('create_table', $options))
