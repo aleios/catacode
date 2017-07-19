@@ -111,6 +111,14 @@ function parseCommandLineOptions()
 function showHelpInformation()
 {
 	echo "USAGE: user_upload --file users.csv\n";
+	echo "--file [csv filename] - Name of the file to be parsed.\n";
+	echo "--create_table - Builds the table in the database.\n";
+	echo "--dry_run - Will execute all relevant functions but will not modify or store results in the database.\n";
+	echo "-u [MySQL username]\n";
+	echo "-p [MySQL password]\n";
+	echo "-h [MySQL host]\n";
+	echo "-d [MySQL database]\n";
+	echo "--help - Shows this help text.\n";
 }
 
 /**
