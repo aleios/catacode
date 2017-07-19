@@ -38,26 +38,43 @@ function createSqlTable()
 }
 
 /**
- * This function takes a name and surname fields and trims any leading/trailing whitespace, removes captilization, capatilizes the first character of the name.
+ * This function takes a name or surname field and trims any leading/trailing whitespace, removes captilization, capatilizes the first character of the name.
  * 
- * @param string &$name
- * @param string &$surname
- * @return void
+ * @param string $name
+ * @return string
  */
-function sanitizeNameFields(&$name, &$surname)
+function sanitizeNameField($name)
 {
+	$tmpname = $name;
+	$tmpname = trim($tmpname, ' -\'');
+	$tmpname = strtolower($tmpname);
+	$tmpname = ucfirst($tmpname);
 	
+	// Remove invalid symbols. Use a regular expression to match invalid symbols. ' and - are special characters.
+	$tmpname = preg_replace("/[^A-Za-z'-]/", "", $tmpname);
+	
+	return $tmpname;
 }
 
 /**
  * This function takes an email and trims the leading/trailing whitespace, puts all in lowercase and verifies that the email follows a valid format.
  *
- * @param string $email
- * @return string
+ * @param string &$email
+ * @return boolean
  */
-function sanitizeAndVerifyEmail($email)
+function sanitizeAndVerifyEmail(&$email)
 {
+	$tmpemail = $email;
+	$tmpemail = trim($tmpemail);
+	$tmpemail = strtolower($tmpemail);
 	
+	// Test if this is a valid email.
+	if(filter_var($tmpemail, FILTER_VALIDATE_EMAIL))
+	{
+		$email = $tmpemail;
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -109,7 +126,7 @@ function attachHeaderCallback(&$row, $key, $header)
 }
 
 /**
- *
+ * 
  *
  * @param string $filename 
  * @return void
@@ -153,6 +170,8 @@ function parseCsv($filename)
 	// Go through each row in the array and attach header as key to values.
 	array_walk($csvarr, 'attachHeaderCallback', $header);
 	
+	// Update the database with the data from the csv (unless dry run).
+	
 }
 
 /**
@@ -174,6 +193,28 @@ function userUploadEntryPoint()
 		showHelpInformation();
 		return;
 	}
+	
+	// Mysql details.
+	if(array_key_exists('u', $options))
+	{
+		$config->sqlUser = $options['u'];
+	}
+	
+	if(array_key_exists('p', $options))
+	{
+		$config->sqlPass = $options['p'];
+	}
+	
+	if(array_key_exists('h', $options))
+	{
+		$config->sqlHost = $options['h'];
+	}
+	
+	if(array_key_exists('d', $options))
+	{
+		$config->sqlDatabase = $options['d'];
+	}
+	
 	
 	// 
 	if(array_key_exists('create_table', $options))
