@@ -168,6 +168,12 @@ function parseCsv($filename)
 		$header[$i] = $tmp;
 	}
 	
+	if(!in_array('name', $header) || !in_array('surname', $header) || !in_array('email', $header))
+	{
+		echo "Error: Malformed header.\n";
+		return;
+	}
+	
 	// Go through each row in the array and attach header as key to values.
 	array_walk($csvarr, 'attachHeaderCallback', $header);
 	
@@ -185,6 +191,7 @@ function parseCsv($filename)
 	}
 	
 	// Update the database with the data from the csv (unless dry run).
+	$totalsuccess = 0;
 	foreach($csvarr as $user)
 	{
 		$name = sanitizeNameField($user['name']);
@@ -230,8 +237,11 @@ function parseCsv($filename)
 		else
 		{	
 			echo "Inserted $name $surname | $email into database.\n";
+			$totalsuccess++;
 		}
 	}
+	
+	echo "Total: $totalsuccess / " . count($csvarr) . " successful.\n";
 }
 
 /**
@@ -275,21 +285,23 @@ function userUploadEntryPoint()
 		$config->sqlDatabase = $options['d'];
 	}
 	
-	// 
+	// Creates the table in the mysql database. When this is present no other functions are run.
 	if(array_key_exists('create_table', $options))
 	{
 		createSqlTable();
 		return;
 	}
 	
-	// 
+	// Check for a --file command present.
 	if(!array_key_exists('file', $options))
 	{
 		// Display missing --file error and show help information.
+		echo "Error: No input file specified. Please specify with --file [filename]\n";
 		showHelpInformation();
 		return;
 	}
 	
+	// Initiate a dry run if --dry_run present.
 	if(array_key_exists('dry_run', $options))
 	{
 		$config->dryRun = true;
